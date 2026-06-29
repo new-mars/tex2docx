@@ -19,3 +19,6 @@ dev = ["pytest"]
 py-modules = ["tex2docx"]
 packages = ["tex2docx_cli"]
 include-package-data = true
+
+[tool.setuptools.package-data]
+tex2docx_cli = ["refs.bib"]
