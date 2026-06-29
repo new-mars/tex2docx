@@ -4,7 +4,7 @@
 
 **Goal:** Make this repository installable as a global Windows-first Python CLI so users can run `tex2docx input.tex` after installation.
 
-**Architecture:** Keep the existing conversion logic in a single importable module, add an argparse-based `main()` entry point, and publish it through a `console_scripts` entry point named `tex2docx`. Packaging stays lightweight: Python handles installation and command wiring, while Pandoc and pandoc-xnos remain external runtime dependencies.
+**Architecture:** Keep the conversion logic in a small importable core module, add an argparse-based `main()` entry point in the top-level compatibility module, and publish it through a `console_scripts` entry point named `tex2docx`. Packaging stays lightweight: Python handles installation and command wiring, while Pandoc and pandoc-xnos remain external runtime dependencies. The default Chicago CSL is resolved from the source tree when available and otherwise downloaded/cached on first use.
 
 **Tech Stack:** Python standard library, setuptools via `pyproject.toml`, pytest for unit tests, Pandoc + pandoc-xnos at runtime.
 
@@ -14,6 +14,9 @@
 
 **Files:**
 - Create: `pyproject.toml`
+- Create: `tex2docx_cli/__init__.py`
+- Create: `tex2docx_cli/core.py`
+- Create: `tex2docx_cli/refs.bib`
 - Modify: `tex2docx.py`
 - Create: `tests/test_cli.py`
 
@@ -52,6 +55,7 @@ def build_arg_parser():
     parser.add_argument("--ref-style")
     parser.add_argument("--toc", dest="toc", action="store_true", default=True)
     parser.add_argument("--no-toc", dest="toc", action="store_false")
+    parser.add_argument("--cleanup", action="store_true")
     return parser
 
 
@@ -65,11 +69,12 @@ def main(argv=None):
         toc=args.toc,
         header=args.header,
         ref_style=args.ref_style,
+        cleanup=args.cleanup,
     )
     return 0
 ```
 
-Add `pyproject.toml` with a `project.scripts` entry point mapping `tex2docx = "tex2docx:main"`.
+Implement the conversion helpers in `tex2docx_cli/core.py`, and have the root `tex2docx.py` module import/re-export them so existing imports still work.
 
 - [ ] **Step 4: Run the test to verify it passes**
 
@@ -79,7 +84,7 @@ Expected: pass.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pyproject.toml tex2docx.py tests/test_cli.py
+git add pyproject.toml tex2docx.py tex2docx_cli tests/test_cli.py
 git commit -m "feat: add installable tex2docx CLI"
 ```
 
@@ -90,21 +95,22 @@ git commit -m "feat: add installable tex2docx CLI"
 
 - [ ] **Step 1: Add install instructions**
 
-```md
-## Installation
+Add this section to `readme.md`:
 
-```bash
-pip install .
-tex2docx --help
-```
+    ## Installation
 
-For a user-local global install, `pipx install .` also works.
+    ```bash
+    pip install .
+    tex2docx --help
+    ```
 
-## Runtime requirements
+    For a user-local global install, `pipx install .` also works.
 
-- Pandoc must be installed and available on PATH.
-- The `pandoc-xnos` filter must be installed and discoverable by Pandoc.
-```
+    ## Runtime requirements
+
+    - Pandoc must be installed and available on PATH.
+    - The `pandoc-xnos` filter must be installed and discoverable by Pandoc.
+    - If the default Chicago CSL file is not available from the source tree, the CLI downloads and caches it on first use.
 
 - [ ] **Step 2: Verify the README renders cleanly**
 
