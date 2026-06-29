@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tex2docx"
+version = "0.1.0"
+description = "Convert LaTeX documents to DOCX using Pandoc."
+readme = "readme.md"
+requires-python = ">=3.8"
+
+[project.scripts]
+tex2docx = "tex2docx:main"
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools]
+py-modules = ["tex2docx"]
+packages = ["tex2docx_cli"]
+include-package-data = true
